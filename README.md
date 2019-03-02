@@ -1,144 +1,58 @@
-## ESP8266-Electric-boiler-controller
+## ESP8266-ADC-Thermistor
 
 [![micropython](https://user-images.githubusercontent.com/13176091/53680744-4dfcc080-3ce8-11e9-94e1-c7985181d6a5.png)](https://micropython.org/)
 
-Контроллер для управления нагревом воды в бойлере. Собран на ESP8266. В качестве датчика температуры используется DS18B20, а часов точного времени DS3231. Для управления нагревательным элементом, симистор BTA41-600 с рабочим током 40А. Питание контроллера выполнено на HLK-PM03 3W.
+Небольшая библиотека для работы микроконтроллера ESP8266 с терморезиторами.
 
-#### Функции контроллера
-* Поддержание заданной температуры воды
-* Включение нагрева по рассписанию
-* Одноразовое включение нагрева
-* Поддержка работы по временным зонам
-* Автоматический переход с летнего на зимнее время
-* Автоматическая подводка часов по NTP серверу, один раз в сутки, при наличии WiFi соединения.
-* Web интерфейс для настройки контроллера
-* API интерфейс для интеграции с системой умный дом (Например, [OpenHab](https://www.openhab.org/))
+В библиотеке используется [уравне́ние Сте́йнхарта — Ха́рта](https://ru.wikipedia.org/wiki/%D0%A3%D1%80%D0%B0%D0%B2%D0%BD%D0%B5%D0%BD%D0%B8%D0%B5_%D0%A1%D1%82%D0%B5%D0%B9%D0%BD%D1%85%D0%B0%D1%80%D1%82%D0%B0_%E2%80%94_%D0%A5%D0%B0%D1%80%D1%82%D0%B0)
 
-#### Используемые библиотеки
-* [OneWire](https://github.com/micropython/micropython/blob/master/drivers/onewire/onewire.py)
-* [DS18B20](https://github.com/micropython/micropython/blob/master/drivers/onewire/ds18x20.py)
-* [DS3231](https://github.com/gwvsol/ESP8266-i2c-DS3231)
-* [timezone](https://github.com/gwvsol/ESP8266-TimeZone)
-* [collections](https://github.com/micropython/micropython-lib/tree/master/collections/collections) и зависимости
-* [uasyncio](https://github.com/micropython/micropython-lib/tree/master/uasyncio/uasyncio) и зависисмоти
-* [picoweb](https://github.com/pfalcon/picoweb)
+![steinhart-hart](https://user-images.githubusercontent.com/13176091/53684792-97fe9a00-3d1a-11e9-8f6a-a1ab98f4a1b1.png)
 
-#### Web интерфес
-Логин и пароль по умолчанию: root root, при настройке контроллера его необходимо изменить. В случае утери пароля, предусмотрен сброс настроек контроллера.
-
-![2019-03-02-10-14-37](https://user-images.githubusercontent.com/13176091/53681250-8ce24480-3cef-11e9-8c19-a6087d8a1010.png) 
-![2019-03-02-10-14-50](https://user-images.githubusercontent.com/13176091/53681259-a5eaf580-3cef-11e9-9e6d-dfa91ab67fbf.png) 
-![2019-03-02-10-15-26](https://user-images.githubusercontent.com/13176091/53681273-c915a500-3cef-11e9-907d-9d1ab44bf3b6.png) 
-![2019-03-02-10-15-51](https://user-images.githubusercontent.com/13176091/53681332-b485dc80-3cf0-11e9-8520-b8c29e8a927e.png) 
-![2019-03-02-10-16-11](https://user-images.githubusercontent.com/13176091/53681348-ff9fef80-3cf0-11e9-970f-df6319f08843.png) 
-![2019-03-02-10-16-17](https://user-images.githubusercontent.com/13176091/53681366-4c83c600-3cf1-11e9-80f3-bbab6f49703a.png)
-
-#### API интефейс
-Поддерживает GET и POST запросы.
-
-*Запрос значения температуры воды* ```/api/v1/temp```
-
-```curl -s -u root:root -G http://192.168.0.16/api/v1/temp```
-
-*Запрос значения поддерживаемой температуры или установка нового значения* ```/api/v1/stemp```
-
-```curl -s -u root:root -G http://192.168.0.16/api/v1/stemp```
-
-```curl -s -u root:root -X POST http://192.168.0.16/api/v1/stemp?stemp=56.60``` или
-
-```curl -s -u root:root -X POST http://192.168.0.16/api/v1/stemp/30.60```
-
-*Запрос значения или установка постоянной работы/выключения системы обогрева воды* ```/api/v1/wall```
-
-```curl -s -u root:root -G http://192.168.0.16/api/v1/wall```
-
-```curl -s -u root:root -X POST http://192.168.0.16/api/v1/wall?wall=1/{0} или ?wall=ON/{OFF}``` или
-
-```curl -s -u root:root -X POST http://192.168.0.16/api/v1/wall/1{0} или wall/ON{OFF}```
-
-*Запрос значения или установка работы/выключения системы обогрева воды по рассписанию* ```/api/v1/wtab```
-
-```curl -s -u root:root -G http://192.168.0.16/api/v1/wtab```
-
-```curl -s -u root:root -X POST http://192.168.0.16/api/v1/wtab?wtab=1/{0} или ?wtab=ON/{OFF}``` или
-
-```curl -s -u root:root -X POST http://192.168.0.16/api/v1/wtab/1{0} или wtab/ON{OFF}```
-
-*Запрос значения или единоразовое включение/выключения системы обогрева воды* ```/api/v1/otime```
-
-```curl -s -u root:root -G http://192.168.0.16/api/v1/otime```
-
-```curl -s -u root:root -X POST http://192.168.0.16/api/v1/otime?otime=1/{0} или ?otime=ON/{OFF}``` или
-
-```curl -s -u root:root -X POST http://192.168.0.16/api/v1/otime/1{0} или otime/ON{OFF}```
-
-*Запрос значения или установка времени включения системы обогрева воды* ```/api/v1/timeon```
-
-```curl -s -u root:root -G http://192.168.0.16/api/v1/timeon```
-
-```curl -s -u root:root -X POST http://192.168.0.16/api/v1/timeon?timeon=21:10``` или
-
-```curl -s -u root:root -X POST http://192.168.0.16/api/v1/timeon/21:45```
-
-*Запрос значения или установка времени выключения системы обогрева воды* ```/api/v1/timeoff```
-
-```curl -s -u root:root -G http://192.168.0.16/api/v1/timeoff```
-
-```curl -s -u root:root -X POST http://192.168.0.16/api/v1/timeon?timeoff=21:10``` или
-
-```curl -s -u root:root -X POST http://192.168.0.16/api/v1/timeoff/21:45```
-
-*Запрос значения мощности обогрева воды* ```/api/v1/power```
-
-```curl -s -u root:root -G http://192.168.0.16/api/v1/power```
-
-#### Файл настроек контроллера
-В контроллере используется два файла настроек, в ```config.txt``` находятся все основные настройки контроллера. Файл имеет вид:
-```json
-{
-    "timezone": 3, 
-    "ONE-TIME": false, 
-    "DS_K": -4.5, 
-    "TIME_OFF": [0, 0, 0, 6, 0, 0, 0, 0], 
-    "TIME_ON": [0, 0, 0, 5, 0, 0, 0, 0], 
-    "DEBUG": true, 
-    "T_WATER": 30.0, 
-    "WORK_ALL": false, 
-    "DST": true, 
-    "MODE_WiFi": "ST", 
-    "WORK_TABLE": false, 
-    "wf_pass": "Fedex##54", 
-    "ssid": "w2234"
-}
-```
-
-Подавляющее большинство настроек этого файла изменяются через Web или API интерфейс. Исключение составляют только ```"DEBUG": true``` и ```"DS_K": -4.5```. Параметер ```DEBUG``` необходим тольк для отладки контроллера. Парамер ```DS_K``` необходим если нужно выполнить корректировку измерения температуры.
-
-Для установки в контроллер нового файла ```config.txt``` используется USB-UART преобразователь с уровнями сигнала 3,3v, а так же утилита ```ampy```.
-```bash
-ampy put config.txt
-```
-Файл ```root.txt``` используется для хранения ```hash``` логина и пароля. По умолчанию этот файл хранит ```hash``` ```root:root```. Если же в процессе работы логин и пароль был изменен, файл будет содержать новый ```hash```.
-
-Во время первого включения, создаются эти два файла, которые в дальнейшем используются для работы контроллера.
-
-#### Компиляция
-Для компиляции используется [SDK for ESP8266/ESP8285 chips](https://github.com/pfalcon/esp-open-sdk). 
-
-После компиляции, необходимо очистить чип ESP8266 и залить новую прошивку, для чего используется ```esptool```
-```bash
-pip3 install setuptools
-pip3 install esptool
-```
-```bash
-esptool.py --port /dev/ttyUSB0 erase_flash
-esptool.py --port /dev/ttyUSB0 --baud 460800 write_flash --flash_size=detect -fm dio 0 firmware-combined.bin
-```
 ***
-#### Модель печатной платы контроллера
-![2018-12-25_00-14-01](https://user-images.githubusercontent.com/13176091/53683429-59141880-3d09-11e9-99ac-9264537ced6f.png)
-![2018-12-25_00-13-10](https://user-images.githubusercontent.com/13176091/53683434-73e68d00-3d09-11e9-9c34-9804adbb2fb1.png)
-***
+### Схема включения терморезисторов
+
+Терморезистор подключен к шине положительного питания
+
+![schematic_esp8266-v1](https://user-images.githubusercontent.com/13176091/53684833-2115d100-3d1b-11e9-91cd-5c94ca4d8e01.png)
+
+Терморезистор подключен к земле
+
+![schematic_esp8266-v2](https://user-images.githubusercontent.com/13176091/53684841-46a2da80-3d1b-11e9-8fdc-c765e0ad1d5a.png)
+
+Библиотека тестировалась с терморезисторами номиналом 10к и 100к
+
+Для термозеисторов номиналом 10к использовались коэффициенты.
+```bash
+A = 0.001129148
+B = 0.000234125
+C = 0,000000088
+```
+Для терморезисторов номиналом 100к использовались коэффициенты.
+```bash
+A = 3.354016e-03
+B = 2.460382e-04
+C = 3.405377e-06
+D = 1.034240e-07
+```
+Если коэффициент D не исполььзуется, он должен быть передан как ```D=False``` или же просто опущен
+
+### Использование библиотеки
+```python
+from term_adc import READ_TERM
+from machine import ADC
+A' = 3.354016e-03         # Коеффициент А терморезистора
+B = 2.460382e-04          # Коеффициент B терморезистора
+C = 3.405377e-06          # Коеффициент C терморезистора
+D = 1.034240e-07          # Коеффициент D терморезистора
+K = 5.29                  # Погрешность терморезистора %
+BALANCE_R = 98500.0       # Балансный резистор в схеме (ом)
+THERMISTOR_R = 100000.0   # Номинал терморезистора (ом)
+adc = ADC(0)
+t = READ_TERM(adc, BALANCE_R, THERMISTOR_R, A, B, C, K, d=D)
+t.values
+```
+
+
 
 
 
