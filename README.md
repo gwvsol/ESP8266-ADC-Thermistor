@@ -6,7 +6,7 @@
 
 В библиотеке используется [уравне́ние Сте́йнхарта — Ха́рта](https://ru.wikipedia.org/wiki/%D0%A3%D1%80%D0%B0%D0%B2%D0%BD%D0%B5%D0%BD%D0%B8%D0%B5_%D0%A1%D1%82%D0%B5%D0%B9%D0%BD%D1%85%D0%B0%D1%80%D1%82%D0%B0_%E2%80%94_%D0%A5%D0%B0%D1%80%D1%82%D0%B0)
 
-![steinhart-hart](https://user-images.githubusercontent.com/13176091/53684792-97fe9a00-3d1a-11e9-8f6a-a1ab98f4a1b1.png)
+![steinhart-hart-small](https://user-images.githubusercontent.com/13176091/53685133-95527380-3d1f-11e9-8fc6-d7467c0e244d.png)
 
 ***
 ### Схема включения терморезисторов
